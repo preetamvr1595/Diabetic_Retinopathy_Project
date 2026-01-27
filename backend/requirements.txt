@@ -1,0 +1,10 @@
+flask
+flask-cors
+numpy
+opencv-python
+tensorflow
+scikit-image
+scipy
+matplotlib
+pandas
+h5py
