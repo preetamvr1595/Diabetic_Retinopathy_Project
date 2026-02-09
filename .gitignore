@@ -18,9 +18,9 @@ uploads/*
 backend/uploads/*
 !backend/uploads/.gitkeep
 
-# Models & Data
-dataset/
-*.h5
+# Models & Data (Include them now)
+# dataset/  <- Removed from ignore
+# *.h5     <- Removed from ignore
 results/
 tests/
 *.log
