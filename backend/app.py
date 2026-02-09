@@ -5,9 +5,9 @@ import cv2
 import numpy as np
 import base64
 import uuid
-from .filters import apply_all_filters
-from .segmentation import segment_image
-from .classification import classify_image
+from filters import apply_all_filters
+from segmentation import segment_image
+from classification import classify_image
 
 app = Flask(__name__)
 CORS(app) # Enable CORS for React frontend

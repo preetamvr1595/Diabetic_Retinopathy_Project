@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Node
+node_modules/
+dist/
+build/
+.env
+
+# Application
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Models & Data
+dataset/
+*.h5
+results/
+tests/
+*.log
+backend_error.txt
+frontend_log.txt
+mask_visualization.png
+
+# OS
+.DS_Store
+Thumbs.db

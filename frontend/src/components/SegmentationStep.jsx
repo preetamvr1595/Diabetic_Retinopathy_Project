@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import api from '../api/axiosConfig';
+import { motion } from 'framer-motion';
 
-const SegmentationStep = ({ imageId, onNext }) => {
+const SegmentationStep = ({ imageId, onNext = () => { } }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -10,10 +10,14 @@ const SegmentationStep = ({ imageId, onNext }) => {
         const fetchSegmentation = async () => {
             try {
                 const res = await api.get(`/api/segment/${imageId}`);
-                setData(res.data);
+                if (res.data) {
+                    setData(res.data);
+                } else {
+                    console.error("Empty response from segmentation API");
+                }
                 setLoading(false);
             } catch (err) {
-                console.error(err);
+                console.error("Segmentation API Error:", err);
                 setLoading(false);
             }
         };
@@ -22,9 +26,9 @@ const SegmentationStep = ({ imageId, onNext }) => {
 
     if (loading) return (
         <div className="text-center py-5">
-            <h3 className="text-light">Generating Lesion Segmentation Map...</h3>
+            <h3 className="text-light">Extracting Vascular Architecture...</h3>
             <div className="spinner-border text-info mt-3" role="status"></div>
-            <p className="text-muted mt-2">Running Attention U-Net Model</p>
+            <p className="text-muted mt-2">Attention U-Net model is generating pixel-wise vessel mask</p>
         </div>
     );
 
@@ -88,7 +92,7 @@ const SegmentationStep = ({ imageId, onNext }) => {
                     <strong> exudates, cotton wool spots, and microaneurysms</strong>.
                     These features are critical indicators of Diabetic Retinopathy severity.
                 </p>
-                <button className="btn btn-premium btn-lg px-5 mt-2" onClick={onNext}>
+                <button className="btn btn-premium btn-lg px-5 mt-2" onClick={() => onNext(data)}>
                     Proceed to Classification <i className="bi bi-activity ms-2"></i>
                 </button>
             </motion.div>

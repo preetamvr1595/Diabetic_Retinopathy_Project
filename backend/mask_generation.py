@@ -5,10 +5,10 @@ import numpy as np
 # ==============================
 # PATH CONFIGURATION (SAFE)
 # ==============================
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = os.path.join(PROJECT_ROOT, "dataset")
 
-IMAGE_DIR = os.path.join(BASE_PATH, "images")
+IMAGE_DIR = os.path.join(PROJECT_ROOT, "images")
 MASK_DIR = os.path.join(BASE_PATH, "masks")
 
 os.makedirs(MASK_DIR, exist_ok=True)

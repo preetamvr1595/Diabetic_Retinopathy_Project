@@ -1,4 +1,4 @@
-from .filter_test import (
+from filter_test import (
     filter_mean,
     filter_median,
     filter_gaussian,

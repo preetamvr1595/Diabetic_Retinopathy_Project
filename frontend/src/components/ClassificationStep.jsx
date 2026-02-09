@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
-import api from '../api/axiosConfig';
 
-const ClassificationStep = ({ imageId, onRestart }) => {
+const ClassificationStep = ({ imageId, onNext = () => { } }) => {
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchClassification = async () => {
             try {
-                const res = await api.get(`/api/classify/${imageId}`);
+                const res = await axios.get(`/api/classify/${imageId}`);
                 setResult(res.data);
                 setLoading(false);
             } catch (err) {
@@ -83,11 +83,8 @@ const ClassificationStep = ({ imageId, onRestart }) => {
                     </p>
 
                     <div className="d-flex justify-content-center gap-3">
-                        <button className="btn btn-outline-dark rounded-pill px-4" onClick={onRestart}>
-                            <i className="bi bi-upload me-2"></i>Analyze Another Image
-                        </button>
-                        <button className="btn btn-premium rounded-pill px-4">
-                            <i className="bi bi-file-earmark-pdf me-2"></i>Download Report
+                        <button className="btn btn-premium btn-lg rounded-pill px-5 shadow" onClick={() => onNext(result)}>
+                            Clinical Consultation <i className="bi bi-chat-dots ms-2"></i>
                         </button>
                     </div>
                 </motion.div>

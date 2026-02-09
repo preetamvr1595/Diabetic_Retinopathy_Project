@@ -1,19 +1,13 @@
 @echo off
-echo Starting Diabetic Retinopathy Reference Project...
+echo Starting Diabetic Retinopathy Dashboard...
 
-:: Check if node_modules exists in frontend
-if not exist "frontend\node_modules" (
-    echo Installing frontend dependencies...
-    cd frontend
-    call npm install
-    cd ..
-)
+:: Start Backend
+start "DR Backend" cmd /k "cd backend && python app.py"
 
-echo Starting Backend...
-start "Backend" cmd /k "python backend/app.py"
+:: Start Frontend
+start "DR Frontend" cmd /k "cd frontend && npm run dev"
 
-echo Starting Frontend...
-cd frontend
-start "Frontend" cmd /k "npm run dev"
-
-echo Both services started!
+echo Servers started!
+echo Frontend: http://localhost:3000
+echo Backend: http://127.0.0.1:5000
+pause

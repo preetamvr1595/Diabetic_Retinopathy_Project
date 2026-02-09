@@ -1,10 +1,10 @@
 flask
 flask-cors
-numpy
 opencv-python
+numpy
 tensorflow
 scikit-image
 scipy
-matplotlib
 pandas
-h5py
+matplotlib
+werkzeug
