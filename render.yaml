@@ -1,0 +1,32 @@
+services:
+  # Backend API (Python Flask)
+  - type: web
+    name: retinacore-api
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: PYTHON_VERSION
+        value: 3.10.0
+
+  # Frontend (React Vite)
+  - type: web
+    name: retinacore-dashboard
+    env: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: NODE_VERSION
+        value: 20.0.0
+    # In a real environment, you might serve the dist folder as a static site
+    # But for simplicity in this blueprint, we'll use npm run preview or static site type
+    # For a static site:
+    # - type: static
+    #   name: retinacore-ui
+    #   rootDir: frontend
+    #   buildCommand: npm install && npm run build
+    #   publishDir: dist

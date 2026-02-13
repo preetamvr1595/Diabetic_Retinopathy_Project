@@ -1,33 +1,35 @@
 # Python
-__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-ENV/
-
-# Node
-node_modules/
-dist/
-build/
-.env
-
-# Application
-uploads/*
-!uploads/.gitkeep
+backend/__pycache__/
+backend/*.py[cod]
+backend/*.pyo
+backend/*.pyd
+backend/.venv/
+backend/venv/
+backend/ENV/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
-# Models & Data (Include them now)
-# dataset/  <- Removed from ignore
-# *.h5     <- Removed from ignore
-results/
-tests/
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+
+# Models (Include them for deployment)
+# backend/models/*.h5 <- Commented out so they ARE pushed
+
+# System / Logs
 *.log
 backend_error.txt
 frontend_log.txt
 mask_visualization.png
-
-# OS
 .DS_Store
 Thumbs.db
+.vscode/
+.venv/
+node_modules/
+dist/
+uploads/
+results/
+dataset/

@@ -103,10 +103,35 @@ def get_classification(image_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/diagnose/<image_id>', methods=['GET'])
+def get_diagnosis(image_id):
+    filepath = os.path.join(UPLOAD_FOLDER, image_id)
+    if not os.path.exists(filepath):
+        return jsonify({"error": "Image not found"}), 404
+        
+    try:
+        label, confidence = classify_image(filepath)
+        # Map label to a professional verdict string
+        verdict = label.replace('_', ' ')
+        if label == "No_DR":
+            verdict = "No DR Detected"
+        
+        return jsonify({
+            "verdict": verdict,
+            "confidence": float(confidence)
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy", "service": "RetinaCore-API"}), 200
+
 @app.route('/uploads/<path:filename>')
 def serve_uploads(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
 if __name__ == '__main__':
-    print("Starting Flask Server...")
-    app.run(host='0.0.0.0', debug=False, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Starting Flask Server on port {port}...")
+    app.run(host='0.0.0.0', debug=False, port=port)

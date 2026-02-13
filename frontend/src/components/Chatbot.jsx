@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaTimes, FaPaperPlane, FaUserMd, FaLightbulb, FaExclamationTriangle } from 'react-icons/fa';
 
 const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
     const [isOpen, setIsOpen] = useState(initialOpen);
     const [messages, setMessages] = useState([
-        { role: 'assistant', text: "Hello! I am your AI Clinical Assistant. I've analyzed your current session data and I'm ready to provide personalized insights. How can I assist you today?" }
+        { role: 'assistant', text: "Hello! I'm your RetinaCore clinical assistant. How can I help you with your analysis today?" }
     ]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
@@ -22,34 +21,35 @@ const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
     }, [messages, isTyping]);
 
     const getStatusResponse = () => {
-        const { classification, diagnosis } = analysisData;
-        if (!classification) return "We are still processing your data. Please continue through the diagnostic steps.";
+        const { classification } = analysisData;
+        if (!classification) return "I'm currently on standby. Please upload a retinal image to begin the analysis.";
 
-        const severity = classification.label.replace('_', ' ');
+        const severity = classification.label.replace(/_/g, ' ');
         const confidence = Math.round(classification.confidence * 100);
 
-        return `Based on our analysis, the scan shows patterns consistent with ${severity} Diabetic Retinopathy with ${confidence}% confidence. Our neural models ${diagnosis?.label !== 'No_DR' ? 'detected' : 'did not detect'} significant vascular abnormalities.`;
+        return `The current analysis shows ${severity} with a confidence level of ${confidence}%. Would you like to know more about this grade?`;
     };
 
     const responses = {
         "status": getStatusResponse(),
-        "my diagnosis": getStatusResponse(),
+        "diagnosis": getStatusResponse(),
         "result": getStatusResponse(),
-        "exudates": "Exudates are fluid leakages from damaged retinal blood vessels. They appear as yellowish spots and indicate active disease.",
-        "dr": "Diabetic Retinopathy (DR) is a complication of diabetes that affects the eyes. It's caused by damage to the blood vessels of the light-sensitive tissue at the back of the eye (retina).",
-        "help": "I can explain medical terms or discuss your specific 'status'. Just ask!"
+        "exudates": "Exudates appear as yellowish deposits on the retina, typically caused by lipid leakage from damaged blood vessels. They are a significant marker for retinopathy.",
+        "dr": "Diabetic Retinopathy (DR) is a condition where high blood sugar levels cause damage to blood vessels in the retina. It's graded from Stage 0 (None) to Stage 3 (Severe/Proliferative).",
+        "treatment": "Treatment recommendations depend on the severity. Mild cases may require closer monitoring, while severe cases might need specialist intervention like laser therapy or injections.",
+        "help": "You can ask me about the 'status' of the analysis, details on 'exudates', facts about 'DR', or 'treatment' options."
     };
 
     const handleSend = (text = input) => {
         if (!text.trim()) return;
 
-        const newMessages = [...messages, { role: 'user', text }];
+        const newMessages = [...messages, { role: 'user', text: text }];
         setMessages(newMessages);
         setInput("");
         setIsTyping(true);
 
         setTimeout(() => {
-            let aiResponse = "I'm sorry, I don't have specific information on that yet. You can ask about your 'status', 'exudates', or 'Diabetic Retinopathy'.";
+            let aiResponse = "I'm not quite sure about that. You can ask for 'help' to see what I can assist with.";
 
             const lowerText = text.toLowerCase();
             for (const key in responses) {
@@ -64,54 +64,60 @@ const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
         }, 800);
     };
 
-    const quickPrompts = ["What are exudates?", "Explain NPDR", "How is DR treated?"];
+    const quickPrompts = ["Diagnostic Status", "About DR Pathology", "Treatment Info"];
 
     return (
         <div className="position-fixed bottom-0 end-0 p-4" style={{ zIndex: 1050 }}>
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="glass-card shadow-2xl overflow-hidden border-primary mb-3"
-                        style={{ width: '380px', height: '550px', display: 'flex', flexDirection: 'column' }}
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="med-card shadow-lg mb-4 d-flex flex-column p-0 overflow-hidden"
+                        style={{ width: '380px', height: '550px', border: '1px solid var(--med-border)' }}
                     >
-                        {/* Header */}
-                        <div className="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center gap-2">
-                                <div className="bg-white rounded-circle p-2 text-primary">
-                                    <FaRobot size={20} />
+                        {/* Clinical Header */}
+                        <div className="p-4 bg-primary text-white d-flex justify-content-between align-items-center shadow-sm">
+                            <div className="d-flex align-items-center gap-3">
+                                <div className="bg-white bg-opacity-20 p-2 rounded-circle">
+                                    <i className="bi bi-chat-heart fs-5"></i>
                                 </div>
                                 <div>
                                     <h6 className="mb-0 fw-bold">Clinical Assistant</h6>
-                                    <span className="x-small opacity-75">Online | Precision-V2 Engine</span>
+                                    <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.7rem', opacity: 0.8 }}>
+                                        <span className="bg-success rounded-circle" style={{ width: '6px', height: '6px' }}></span>
+                                        <span>AI Analysis Active</span>
+                                    </div>
                                 </div>
                             </div>
                             <button className="btn btn-link text-white p-0" onClick={() => setIsOpen(false)}>
-                                <FaTimes />
+                                <i className="bi bi-dash-lg"></i>
                             </button>
                         </div>
 
-                        {/* Chat Area */}
+                        {/* Chat Body */}
                         <div
                             ref={scrollRef}
-                            className="flex-grow-1 p-3 overflow-auto bg-light bg-opacity-50"
-                            style={{ scrollBehavior: 'smooth' }}
+                            className="flex-grow-1 p-4 overflow-auto bg-light bg-opacity-30"
                         >
-                            <div className="alert alert-warning x-small border-0 flex-row gap-2 d-flex mb-3">
-                                <FaExclamationTriangle className="flex-shrink-0 mt-1" />
-                                <span>Educational support only. Not for self-diagnosis.</span>
-                            </div>
-
                             {messages.map((m, i) => (
-                                <div key={i} className={`d-flex mb-3 ${m.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
+                                <div
+                                    key={i}
+                                    className={`d-flex mb-4 ${m.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}
+                                >
                                     <div
-                                        className={`p-3 rounded-4 shadow-sm small ${m.role === 'user'
-                                            ? 'bg-primary text-white rounded-te-none'
-                                            : 'bg-white text-dark rounded-ts-none border'
+                                        className={`p-3 rounded-4 shadow-sm ${m.role === 'user'
+                                            ? 'bg-primary text-white'
+                                            : 'bg-white text-main'
                                             }`}
-                                        style={{ maxWidth: '85%' }}
+                                        style={{
+                                            maxWidth: '85%',
+                                            fontSize: '0.85rem',
+                                            lineHeight: '1.5',
+                                            borderBottomRightRadius: m.role === 'user' ? '4px' : '16px',
+                                            borderBottomLeftRadius: m.role === 'user' ? '16px' : '4px'
+                                        }}
                                     >
                                         {m.text}
                                     </div>
@@ -119,10 +125,11 @@ const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
                             ))}
 
                             {isTyping && (
-                                <div className="d-flex justify-content-start mb-3">
-                                    <div className="bg-white p-3 rounded-4 border">
-                                        <div className="typing-indicator d-flex gap-1">
-                                            <span></span><span></span><span></span>
+                                <div className="d-flex justify-content-start mb-4">
+                                    <div className="px-3 py-2 bg-white rounded-4 shadow-sm text-muted">
+                                        <div className="d-flex gap-2 align-items-center">
+                                            <div className="spinner-grow spinner-grow-sm text-primary" style={{ width: '6px', height: '6px' }}></div>
+                                            <span style={{ fontSize: '0.75rem' }}>Assistant is typing...</span>
                                         </div>
                                     </div>
                                 </div>
@@ -130,15 +137,16 @@ const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
                         </div>
 
                         {/* Quick Prompts */}
-                        <div className="px-3 py-2 bg-light border-top">
-                            <div className="d-flex gap-2 overflow-auto pb-1" style={{ whiteSpace: 'nowrap' }}>
+                        <div className="px-3 py-2 bg-white border-top">
+                            <div className="d-flex gap-2 overflow-auto pb-1 no-scrollbar">
                                 {quickPrompts.map((p, i) => (
                                     <button
                                         key={i}
-                                        className="btn btn-xs btn-outline-primary rounded-pill small px-2 py-1"
+                                        className="btn btn-sm btn-outline-primary rounded-pill py-1 px-3 white-space-nowrap"
+                                        style={{ fontSize: '0.75rem' }}
                                         onClick={() => handleSend(p)}
                                     >
-                                        <FaLightbulb className="me-1" /> {p}
+                                        {p}
                                     </button>
                                 ))}
                             </div>
@@ -146,20 +154,22 @@ const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
 
                         {/* Input Area */}
                         <div className="p-3 bg-white border-top">
-                            <div className="input-group">
+                            <div className="d-flex gap-2 align-items-center">
                                 <input
                                     type="text"
-                                    className="form-control border-0 bg-light rounded-start-pill ps-3"
-                                    placeholder="Ask me anything..."
+                                    className="form-control border-0 bg-light rounded-pill px-4"
+                                    style={{ fontSize: '0.9rem' }}
+                                    placeholder="Ask about your analysis..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                                 />
                                 <button
-                                    className="btn btn-primary rounded-end-pill px-3"
+                                    className="btn btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                    style={{ width: '40px', height: '40px' }}
                                     onClick={() => handleSend()}
                                 >
-                                    <FaPaperPlane size={14} />
+                                    <i className="bi bi-send-fill fs-6"></i>
                                 </button>
                             </div>
                         </div>
@@ -171,30 +181,12 @@ const Chatbot = ({ initialOpen = false, analysisData = {} }) => {
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`btn rounded-circle shadow-lg p-3 d-flex align-items-center justify-content-center ${isOpen ? 'btn-light text-primary' : 'btn-primary'}`}
-                style={{ width: '60px', height: '60px' }}
+                className={`btn btn-primary shadow-lg rounded-circle p-0 d-flex flex-column align-items-center justify-content-center ${isOpen ? 'd-none' : ''}`}
+                style={{ width: '65px', height: '65px' }}
                 onClick={() => setIsOpen(!isOpen)}
             >
-                {isOpen ? <FaTimes size={24} /> : <FaRobot size={24} />}
+                <i className="bi bi-chat-dots-fill fs-3"></i>
             </motion.button>
-
-            <style>{`
-        .x-small { font-size: 0.75rem; }
-        .btn-xs { font-size: 0.7rem; }
-        .typing-indicator span {
-          width: 4px;
-          height: 4px;
-          background: #3b82f6;
-          border-radius: 50%;
-          animation: bounce 1.4s infinite ease-in-out both;
-        }
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1.0); }
-        }
-      `}</style>
         </div>
     );
 };

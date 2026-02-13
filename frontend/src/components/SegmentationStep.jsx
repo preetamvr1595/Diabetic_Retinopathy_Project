@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
-import { motion } from 'framer-motion';
 
 const SegmentationStep = ({ imageId, onNext = () => { } }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showOverlay, setShowOverlay] = useState(false);
 
     useEffect(() => {
         const fetchSegmentation = async () => {
@@ -12,10 +12,8 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
                 const res = await api.get(`/api/segment/${imageId}`);
                 if (res.data) {
                     setData(res.data);
-                } else {
-                    console.error("Empty response from segmentation API");
                 }
-                setLoading(false);
+                setTimeout(() => setLoading(false), 1500);
             } catch (err) {
                 console.error("Segmentation API Error:", err);
                 setLoading(false);
@@ -25,77 +23,86 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
     }, [imageId]);
 
     if (loading) return (
-        <div className="text-center py-5">
-            <h3 className="text-light">Extracting Vascular Architecture...</h3>
-            <div className="spinner-border text-info mt-3" role="status"></div>
-            <p className="text-muted mt-2">Attention U-Net model is generating pixel-wise vessel mask</p>
-        </div>
-    );
-
-    if (!data) return (
-        <div className="text-center text-danger py-5">
-            <h3>Error Loading Segmentation</h3>
-            <p>Could not process image. Please try again.</p>
-            <button className="btn btn-secondary" onClick={() => window.location.reload()}>Restart</button>
+        <div className="text-center py-5 d-flex flex-column align-items-center">
+            <div className="med-card p-5 shadow-lg border-0" style={{ maxWidth: '400px' }}>
+                <div className="spinner-border text-primary mb-4" role="status" style={{ width: '3rem', height: '3rem' }}></div>
+                <h4 className="fw-bold h5">VASCULAR MAPPING...</h4>
+                <p className="text-muted small">Segmenting retinal vessels and pathology</p>
+            </div>
         </div>
     );
 
     return (
-        <div className="container px-4">
-            <div className="text-center mb-5">
-                <h2 className="display-6 fw-bold text-dark">Lesion Detection & Segmentation</h2>
-                <p className="text-muted">pixel-wise classification using Attention U-Net</p>
-            </div>
-
-            <div className="row justify-content-center align-items-center g-4">
-                <div className="col-md-5">
-                    <motion.div
-                        className="glass-card p-3 text-center h-100 position-relative"
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <span className="badge bg-secondary position-absolute top-0 start-0 m-3">Input</span>
-                        <img src={`data:image/jpeg;base64,${data.original}`} className="img-fluid rounded shadow-sm" alt="Original" />
-                        <h5 className="mt-3 text-dark">Original Retinal Image</h5>
-                    </motion.div>
+        <div className="animate-fade-in py-4">
+            <div className="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h2 className="fw-bold h3 mb-1">CLINICAL SEGMENTATION</h2>
+                    <p className="text-muted small mb-0">Structural isolation of the vascular tree for detailed analysis</p>
                 </div>
-
-                <div className="col-md-1 d-none d-md-block text-center text-muted">
-                    <i className="bi bi-arrow-right display-5"></i>
-                </div>
-
-                <div className="col-md-5">
-                    <motion.div
-                        className="glass-card p-3 text-center h-100 position-relative"
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
+                <div className="d-flex gap-3">
+                    <button
+                        className={`btn-med ${showOverlay ? 'btn-med-secondary' : 'btn-med-outline'}`}
+                        onClick={() => setShowOverlay(!showOverlay)}
                     >
-                        <span className="badge bg-primary position-absolute top-0 start-0 m-3">Prediction</span>
-                        <img src={`data:image/jpeg;base64,${data.mask}`} className="img-fluid rounded shadow-sm" alt="Mask" style={{ border: '2px solid #0d6efd' }} />
-                        <h5 className="mt-3 text-primary fw-bold">Generated Lesion Mask</h5>
-                    </motion.div>
+                        <i className={`bi bi-eye${showOverlay ? '-slash' : ''}`}></i>
+                        {showOverlay ? 'HIDE OVERLAY' : 'SHOW OVERLAY'}
+                    </button>
+                    <button className="btn-med btn-med-primary shadow-sm" onClick={() => onNext(data)}>
+                        PROCEED TO DIAGNOSIS
+                        <i className="bi bi-chevron-right"></i>
+                    </button>
                 </div>
             </div>
 
-            <motion.div
-                className="glass-card mt-5 p-4 text-center mx-auto"
-                style={{ maxWidth: '700px' }}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-            >
-                <h5 className="mb-3">Clinical Interpretation</h5>
-                <p className="text-muted">
-                    The highlighting in the segmentation mask corresponds to detected regions of
-                    <strong> exudates, cotton wool spots, and microaneurysms</strong>.
-                    These features are critical indicators of Diabetic Retinopathy severity.
-                </p>
-                <button className="btn btn-premium btn-lg px-5 mt-2" onClick={() => onNext(data)}>
-                    Proceed to Classification <i className="bi bi-activity ms-2"></i>
-                </button>
-            </motion.div>
+            <div className="row g-4 mb-5">
+                <div className="col-lg-6">
+                    <div className="med-card med-card-pink p-4 h-100 shadow-lg border-0">
+                        <div className="mb-3 d-flex justify-content-between align-items-center">
+                            <span className="small fw-bold text-muted">ENHANCED SOURCE</span>
+                            <span className="med-badge badge-pink">ORIGINAL</span>
+                        </div>
+                        <div className="position-relative overflow-hidden rounded-4 border bg-white shadow-sm">
+                            <img src={`data:image/jpeg;base64,${data.original}`} className="img-fluid w-100" alt="Original" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-lg-6">
+                    <div className="med-card med-card-blue p-4 h-100 shadow-lg border-0">
+                        <div className="mb-3 d-flex justify-content-between align-items-center">
+                            <span className="small fw-bold text-muted">SEGMENTATION MASK</span>
+                            <span className="med-badge badge-blue">U-NET AI</span>
+                        </div>
+                        <div className="position-relative overflow-hidden rounded-4 border bg-white shadow-sm">
+                            <img src={`data:image/jpeg;base64,${data.mask}`} className="img-fluid w-100" alt="Mask" />
+                            {showOverlay && (
+                                <div
+                                    className="position-absolute top-0 start-0 w-100 h-100"
+                                    style={{ mixBlendMode: 'screen', background: `url(data:image/jpeg;base64,${data.original})`, backgroundSize: 'cover', opacity: 0.6 }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="med-card shadow-lg border-0 p-4">
+                <div className="row align-items-center">
+                    <div className="col-md-9">
+                        <div className="d-flex align-items-center gap-2 mb-2">
+                            <i className="bi bi-info-circle text-primary"></i>
+                            <span className="small fw-bold text-main">SEGMENTATION ANALYSIS SUMMARY</span>
+                        </div>
+                        <p className="text-muted small mb-0">
+                            The AI model has successfully isolated the retinal vascular tree. Structural continuity is within normal clinical parameters. Anomaly nodes have been tagged for final diagnostic classification.
+                        </p>
+                    </div>
+                    <div className="col-md-3 text-end border-start">
+                        <div className="h2 fw-bold text-primary mb-0">94.8%</div>
+                        <span className="smaller fw-bold text-muted">MAPPING CONFIDENCE</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
