@@ -32,6 +32,20 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
         </div>
     );
 
+    if (!data && !loading) return (
+        <div className="text-center py-5 d-flex flex-column align-items-center">
+            <div className="med-card p-5 shadow-lg border-0 bg-danger bg-opacity-10" style={{ maxWidth: '400px' }}>
+                <i className="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
+                <h4 className="fw-bold h5 text-danger">SEGMENTATION FAILED</h4>
+                <p className="text-muted small mb-4">The AI engine was unable to process the vascular tree. This may be due to a server timeout or invalid image data.</p>
+                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
+                    <i className="bi bi-arrow-clockwise"></i>
+                    RETRY PROCESS
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <div className="animate-fade-in py-4">
             <div className="d-flex justify-content-between align-items-end mb-4">
@@ -43,11 +57,12 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
                     <button
                         className={`btn-med ${showOverlay ? 'btn-med-secondary' : 'btn-med-outline'}`}
                         onClick={() => setShowOverlay(!showOverlay)}
+                        disabled={!data}
                     >
                         <i className={`bi bi-eye${showOverlay ? '-slash' : ''}`}></i>
                         {showOverlay ? 'HIDE OVERLAY' : 'SHOW OVERLAY'}
                     </button>
-                    <button className="btn-med btn-med-primary shadow-sm" onClick={() => onNext(data)}>
+                    <button className="btn-med btn-med-primary shadow-sm" onClick={() => onNext(data)} disabled={!data}>
                         PROCEED TO DIAGNOSIS
                         <i className="bi bi-chevron-right"></i>
                     </button>
@@ -61,8 +76,12 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
                             <span className="small fw-bold text-muted">ENHANCED SOURCE</span>
                             <span className="med-badge badge-pink">ORIGINAL</span>
                         </div>
-                        <div className="position-relative overflow-hidden rounded-4 border bg-white shadow-sm">
-                            <img src={`data:image/jpeg;base64,${data.original}`} className="img-fluid w-100" alt="Original" />
+                        <div className="position-relative overflow-hidden rounded-4 border bg-white shadow-sm" style={{ minHeight: '300px' }}>
+                            {data?.original ? (
+                                <img src={`data:image/jpeg;base64,${data.original}`} className="img-fluid w-100" alt="Original" />
+                            ) : (
+                                <div className="d-flex align-items-center justify-content-center h-100 text-muted small">No Preview Available</div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -73,13 +92,19 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
                             <span className="small fw-bold text-muted">SEGMENTATION MASK</span>
                             <span className="med-badge badge-blue">U-NET AI</span>
                         </div>
-                        <div className="position-relative overflow-hidden rounded-4 border bg-white shadow-sm">
-                            <img src={`data:image/jpeg;base64,${data.mask}`} className="img-fluid w-100" alt="Mask" />
-                            {showOverlay && (
-                                <div
-                                    className="position-absolute top-0 start-0 w-100 h-100"
-                                    style={{ mixBlendMode: 'screen', background: `url(data:image/jpeg;base64,${data.original})`, backgroundSize: 'cover', opacity: 0.6 }}
-                                />
+                        <div className="position-relative overflow-hidden rounded-4 border bg-white shadow-sm" style={{ minHeight: '300px' }}>
+                            {data?.mask ? (
+                                <>
+                                    <img src={`data:image/jpeg;base64,${data.mask}`} className="img-fluid w-100" alt="Mask" />
+                                    {showOverlay && (
+                                        <div
+                                            className="position-absolute top-0 start-0 w-100 h-100"
+                                            style={{ mixBlendMode: 'screen', background: `url(data:image/jpeg;base64,${data.original})`, backgroundSize: 'cover', opacity: 0.6 }}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <div className="d-flex align-items-center justify-content-center h-100 text-muted small">Mask Generation Failed</div>
                             )}
                         </div>
                     </div>
@@ -94,11 +119,12 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
                             <span className="small fw-bold text-main">SEGMENTATION ANALYSIS SUMMARY</span>
                         </div>
                         <p className="text-muted small mb-0">
-                            The AI model has successfully isolated the retinal vascular tree. Structural continuity is within normal clinical parameters. Anomaly nodes have been tagged for final diagnostic classification.
+                            {data ? "The AI model has successfully isolated the retinal vascular tree. Structural continuity is within normal clinical parameters. Anomaly nodes have been tagged for final diagnostic classification."
+                                : "Awaiting clinical processing result. The neural network is pending response from the primary inference engine."}
                         </p>
                     </div>
                     <div className="col-md-3 text-end border-start">
-                        <div className="h2 fw-bold text-primary mb-0">94.8%</div>
+                        <div className="h2 fw-bold text-primary mb-0">{data ? '94.8%' : '0.0%'}</div>
                         <span className="smaller fw-bold text-muted">MAPPING CONFIDENCE</span>
                     </div>
                 </div>

@@ -30,6 +30,19 @@ const DiagnosisStep = ({ imageId, onNext }) => {
         </div>
     );
 
+    if (!diagnosis && !loading) return (
+        <div className="text-center py-5 d-flex flex-column align-items-center">
+            <div className="med-card p-5 shadow-lg border-0 bg-danger bg-opacity-10" style={{ maxWidth: '400px' }}>
+                <i className="bi bi-activity text-danger display-4 mb-3"></i>
+                <h4 className="fw-bold h5 text-danger">DIAGNOSIS INTERRUPTED</h4>
+                <p className="text-muted small mb-4">The diagnostic engine returned an empty result. This can happen if the clinical model is still loading or if the connection was reset.</p>
+                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
+                    RESTART DIAGNOSIS
+                </button>
+            </div>
+        </div>
+    );
+
     const isHealthy = diagnosis?.verdict?.toLowerCase().includes('no dr');
 
     return (

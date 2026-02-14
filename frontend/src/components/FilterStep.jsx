@@ -36,7 +36,20 @@ const FilterStep = ({ imageId, onNext }) => {
         </div>
     );
 
-    const activeFilter = filters.find(f => f.name === selectedFilter) || filters[0];
+    const activeFilter = filters.find(f => f.name === selectedFilter) || (filters.length > 0 ? filters[0] : null);
+
+    if (!loading && filters.length === 0) return (
+        <div className="text-center py-5 d-flex flex-column align-items-center">
+            <div className="med-card p-5 shadow-lg border-0 bg-danger bg-opacity-10" style={{ maxWidth: '400px' }}>
+                <i className="bi bi-cpu text-danger display-4 mb-3"></i>
+                <h4 className="fw-bold h5 text-danger">ENHANCEMENT FAILED</h4>
+                <p className="text-muted small mb-4">The clinical preprocessing filters failed to initialize. Please verify the backend connection and image integrity.</p>
+                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
+                    RETRY PIPELINE
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <div className="animate-fade-in py-4">
