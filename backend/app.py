@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 import base64
 import uuid
+import json
+from werkzeug.security import generate_password_hash, check_password_hash
 from filters import apply_all_filters
 from segmentation import segment_image
 from classification import classify_image
@@ -13,7 +15,66 @@ app = Flask(__name__)
 CORS(app) # Enable CORS for React frontend
 
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+USERS_FILE = os.path.join(os.getcwd(), "users.json")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialize users file if it doesn't exist
+if not os.path.exists(USERS_FILE):
+    with open(USERS_FILE, 'w') as f:
+        json.dump({}, f)
+
+def load_users():
+    with open(USERS_FILE, 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f)
+
+# Auth Endpoints
+@app.route('/api/auth/signup', methods=['POST'])
+def signup():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    name = data.get('name')
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+        
+    users = load_users()
+    if email in users:
+        return jsonify({"error": "User already exists"}), 400
+        
+    users[email] = {
+        "password": generate_password_hash(password),
+        "name": name or "Clinical User"
+    }
+    save_users(users)
+    return jsonify({"message": "User created successfully", "user": {"email": email, "name": users[email]['name']}}), 201
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+        
+    users = load_users()
+    user = users.get(email)
+    
+    if user and check_password_hash(user['password'], password):
+        return jsonify({
+            "message": "Login successful",
+            "user": {
+                "email": email,
+                "name": user['name']
+            }
+        }), 200
+        
+    return jsonify({"error": "Invalid email or password"}), 401
 
 # Helper to encode image to base64
 def encode_image(img_path):

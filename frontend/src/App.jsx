@@ -11,7 +11,8 @@ import TopBar from './components/TopBar';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState(null);
+    const isAuthenticated = !!user;
     const [step, setStep] = useState(1);
     const [imageId, setImageId] = useState(null);
     const [analysisData, setAnalysisData] = useState({
@@ -40,7 +41,7 @@ function App() {
     }
 
     if (!isAuthenticated) {
-        return <Login onLogin={() => setIsAuthenticated(true)} />;
+        return <Login onLogin={(userData) => setUser(userData)} />;
     }
 
     const renderStep = () => {
@@ -95,8 +96,9 @@ function App() {
         <div className="app-container">
             <TopBar
                 currentStep={step}
-                onLogout={() => setIsAuthenticated(false)}
+                onLogout={() => setUser(null)}
                 onNavigate={setStepManually}
+                user={user}
             />
 
             <main className="main-content">

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TopBar = ({ currentStep, onLogout, onNavigate }) => {
+const TopBar = ({ currentStep, onLogout, onNavigate, user }) => {
     const steps = [
         { id: 1, label: 'Upload' },
         { id: 2, label: 'Filter' },
@@ -39,8 +39,8 @@ const TopBar = ({ currentStep, onLogout, onNavigate }) => {
 
             <div className="d-flex align-items-center gap-3">
                 <div className="d-none d-md-block text-end">
-                    <div className="small fw-bold text-main">DR. SAMUEL WILSON</div>
-                    <div className="smaller text-muted" style={{ fontSize: '10px' }}>OPHTHALMOLOGY DEPT.</div>
+                    <div className="small fw-800 text-main uppercase tracking-tighter">{user?.name || 'Authorized User'}</div>
+                    <div className="smaller text-muted opacity-50" style={{ fontSize: '10px' }}>{user?.email || 'CLINICAL ACCOUNT'}</div>
                 </div>
                 <button className="btn-med btn-med-outline" onClick={onLogout}>
                     <i className="bi bi-box-arrow-right"></i>

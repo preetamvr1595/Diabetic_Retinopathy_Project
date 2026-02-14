@@ -1,15 +1,62 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 
 const Login = ({ onLogin }) => {
     const [mode, setMode] = useState('login'); // 'login' or 'signup'
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        name: ''
+    });
+
+    const [passwordStrength, setPasswordStrength] = useState(''); // 'weak', 'strong'
+
+    const checkStrength = (pass) => {
+        if (!pass) return '';
+        if (pass.length < 8) return 'weak';
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+        const hasNumber = /[0-9]/.test(pass);
+        if (hasSpecial && hasNumber) return 'strong';
+        return 'weak';
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+        if (name === 'password') {
+            setPasswordStrength(checkStrength(value));
+        }
+        setError('');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        onLogin();
+        setError('');
+
+        try {
+            if (mode === 'signup') {
+                // Account Creation using relative path for Vite proxy
+                const res = await axios.post('/api/auth/signup', formData);
+                // System Requirement: Auto-login after signup
+                onLogin(res.data.user);
+            } else {
+                // Standard Login using relative path for Vite proxy
+                const res = await axios.post('/api/auth/login', {
+                    email: formData.email,
+                    password: formData.password
+                });
+                onLogin(res.data.user);
+            }
+        } catch (err) {
+            console.error("Auth Error:", err);
+            setError(err.response?.data?.error || 'Authentication sequence failed. Ensure clinical gateway is online.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -25,74 +72,99 @@ const Login = ({ onLogin }) => {
                     <div className="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 mb-3">
                         <i className="bi bi-activity fs-1 text-primary"></i>
                     </div>
-                    <h1 className="h3 mb-1 fw-bold">RETINACORE</h1>
-                    <p className="text-muted small">Diagnostic Analysis Platform</p>
+                    <h1 className="h3 mb-1 fw-bold tracking-tighter">RETINACORE</h1>
+                    <p className="text-muted small uppercase fw-800 opacity-50" style={{ letterSpacing: '1px' }}>Clinical Diagnostic Platform</p>
                 </div>
 
                 {/* Mode Toggle */}
                 <div className="d-flex p-1 bg-light rounded-pill mb-5 border">
                     <button
                         className={`btn flex-grow-1 rounded-pill py-2 fw-bold small ${mode === 'login' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
-                        onClick={() => setMode('login')}
+                        onClick={() => { setMode('login'); setError(''); }}
                     >
                         SIGN IN
                     </button>
                     <button
                         className={`btn flex-grow-1 rounded-pill py-2 fw-bold small ${mode === 'signup' ? 'bg-white shadow-sm text-pink' : 'text-muted'}`}
                         style={{ color: mode === 'signup' ? 'var(--med-secondary)' : '' }}
-                        onClick={() => setMode('signup')}
+                        onClick={() => { setMode('signup'); setError(''); }}
                     >
                         CREATE ACCOUNT
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="animate-fade-in">
-                    {mode === 'signup' && (
+                <AnimatePresence mode="wait">
+                    <motion.form
+                        key={mode}
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        onSubmit={handleSubmit}
+                    >
+                        {error && (
+                            <div className="alert alert-danger py-2 small mb-4 border-0 bg-danger bg-opacity-10 text-danger fw-bold">
+                                <i className="bi bi-exclamation-triangle me-2"></i>
+                                {error}
+                            </div>
+                        )}
+
+                        {mode === 'signup' && (
+                            <div className="mb-4">
+                                <label className="smaller fw-800 text-muted mb-2 d-block tracking-widest uppercase">FULL NAME</label>
+                                <input name="name" onChange={handleChange} type="text" className="med-input" placeholder="Dr. John Doe" required />
+                            </div>
+                        )}
+
                         <div className="mb-4">
-                            <label className="small fw-bold text-muted mb-2 d-block">FULL NAME</label>
-                            <input type="text" className="med-input" placeholder="Dr. John Doe" required />
+                            <label className="smaller fw-800 text-muted mb-2 d-block tracking-widest uppercase">EMAIL ADDRESS</label>
+                            <input name="email" onChange={handleChange} type="email" className="med-input" placeholder="clinician@hospital.org" required />
                         </div>
-                    )}
 
-                    <div className="mb-4">
-                        <label className="small fw-bold text-muted mb-2 d-block">EMAIL ADDRESS</label>
-                        <input type="email" className="med-input" placeholder="clinician@hospital.org" required />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="small fw-bold text-muted mb-2 d-block">PASSWORD</label>
-                        <input type="password" className="med-input" placeholder="••••••••" required />
-                    </div>
-
-                    {mode === 'signup' && (
-                        <div className="mb-5">
-                            <label className="small fw-bold text-muted mb-2 d-block">CONFIRM PASSWORD</label>
-                            <input type="password" className="med-input" placeholder="••••••••" required />
+                        <div className="mb-2">
+                            <label className="smaller fw-800 text-muted mb-2 d-block tracking-widest uppercase">PASSWORD</label>
+                            <input name="password" onChange={handleChange} type="password" className="med-input" placeholder="••••••••" required />
                         </div>
-                    )}
 
-                    <div className="mb-5">
-                        <button
-                            type="submit"
-                            className={`btn-med w-100 py-3 justify-content-center ${mode === 'login' ? 'btn-med-primary' : 'btn-med-secondary'}`}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <span className="spinner-border spinner-border-sm" role="status"></span>
-                                    <span>PROCESSING...</span>
-                                </>
-                            ) : (
-                                mode === 'login' ? 'SIGN IN TO DASHBOARD' : 'CREATE CLINICIAN ACCOUNT'
-                            )}
-                        </button>
-                    </div>
-                </form>
+                        {mode === 'signup' && formData.password && (
+                            <div className="mb-5 animate-fade-in text-start">
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <span className="smaller fw-800 opacity-50" style={{ fontSize: '9px' }}>SECURITY ANALYSIS</span>
+                                    <span className={`smaller fw-800 uppercase ${passwordStrength === 'strong' ? 'text-success' : 'text-warning'}`} style={{ fontSize: '9px' }}>
+                                        {passwordStrength}
+                                    </span>
+                                </div>
+                                <div className="p-1 bg-light rounded-pill border" style={{ height: '8px' }}>
+                                    <motion.div
+                                        animate={{ width: passwordStrength === 'strong' ? '100%' : '50%' }}
+                                        className={`h-100 rounded-pill ${passwordStrength === 'strong' ? 'bg-success' : 'bg-warning'}`}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
-                <div className="text-center pt-4 border-top">
+                        <div className="mt-5">
+                            <button
+                                type="submit"
+                                className={`btn-med w-100 py-3 justify-content-center ${mode === 'login' ? 'btn-med-primary' : 'btn-med-secondary'}`}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm" role="status"></span>
+                                        <span className="ms-2">PROCESSING...</span>
+                                    </>
+                                ) : (
+                                    mode === 'login' ? 'SIGN IN TO DASHBOARD' : 'CREATE ACCOUNT & ENTER'
+                                )}
+                            </button>
+                        </div>
+                    </motion.form>
+                </AnimatePresence>
+
+                <div className="text-center pt-4 border-top mt-5">
                     <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
                         <div className="p-1 rounded-circle bg-success"></div>
-                        <span className="smaller fw-bold text-muted" style={{ fontSize: '10px' }}>HIPAA COMPLIANT & SECURE</span>
+                        <span className="smaller fw-800 text-muted opacity-50" style={{ fontSize: '10px' }}>HIPAA COMPLIANT & SECURE // AES-256</span>
                     </div>
                 </div>
             </motion.div>
