@@ -4,6 +4,7 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ .
+RUN chmod -R +x node_modules/.bin
 RUN npm run build
 
 # Production stage
