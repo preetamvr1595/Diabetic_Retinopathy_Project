@@ -1,9 +1,8 @@
 [build]
-builder = "docker"
-dockerfilePath = "frontend/Dockerfile"
+builder = "DOCKER"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm run preview"
 healthcheckPath = "/"
 restartPolicy = "on-failure"
 restartLimit = 10
