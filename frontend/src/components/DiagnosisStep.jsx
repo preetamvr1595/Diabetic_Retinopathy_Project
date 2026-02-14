@@ -43,7 +43,7 @@ const DiagnosisStep = ({ imageId, onNext }) => {
         </div>
     );
 
-    const isHealthy = diagnosis?.verdict?.toLowerCase().includes('no dr');
+    const isHealthy = diagnosis?.verdict?.toLowerCase()?.includes('no dr');
 
     return (
         <div className="animate-fade-in py-4">
@@ -52,7 +52,11 @@ const DiagnosisStep = ({ imageId, onNext }) => {
                     <h2 className="fw-bold h3 mb-1">IMAGE DIAGNOSIS</h2>
                     <p className="text-muted small mb-0">Automated detection of diabetic retinopathy pathologies</p>
                 </div>
-                <button className="btn-med btn-med-primary shadow-sm" onClick={() => onNext(diagnosis)}>
+                <button
+                    className="btn-med btn-med-primary shadow-sm"
+                    onClick={() => onNext(diagnosis)}
+                    disabled={!diagnosis || !!diagnosis?.error}
+                >
                     PROCEED TO CLASSIFICATION
                     <i className="bi bi-chevron-right"></i>
                 </button>

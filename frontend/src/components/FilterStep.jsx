@@ -11,11 +11,13 @@ const FilterStep = ({ imageId, onNext }) => {
         const fetchFilters = async () => {
             try {
                 const res = await api.get(`/api/filters/${imageId}`);
-                setFilters(res.data);
-                if (res.data.find(f => f.name === 'ACE_ME_Novel')) {
+                const data = Array.isArray(res.data) ? res.data : [];
+                setFilters(data);
+
+                if (data.find(f => f.name === 'ACE_ME_Novel')) {
                     setSelectedFilter('ACE_ME_Novel');
-                } else if (res.data.length > 0) {
-                    setSelectedFilter(res.data[0].name);
+                } else if (data.length > 0) {
+                    setSelectedFilter(data[0].name);
                 }
                 setLoading(false);
             } catch (err) {
@@ -58,7 +60,11 @@ const FilterStep = ({ imageId, onNext }) => {
                     <h2 className="fw-bold h3 mb-1">IMAGE ENHANCEMENT</h2>
                     <p className="text-muted small mb-0">Select the optimal enhancement algorithm for final diagnosis</p>
                 </div>
-                <button className="btn-med btn-med-primary shadow-sm" onClick={() => onNext(filters)}>
+                <button
+                    className="btn-med btn-med-primary shadow-sm"
+                    onClick={() => onNext(filters)}
+                    disabled={filters.length === 0}
+                >
                     PROCEED TO SEGMENTATION
                     <i className="bi bi-chevron-right"></i>
                 </button>
@@ -143,20 +149,20 @@ const FilterStep = ({ imageId, onNext }) => {
                         </thead>
                         <tbody>
                             {filters.map((f, i) => (
-                                <tr key={i} className={f.name === selectedFilter ? 'bg-primary bg-opacity-5' : ''}>
-                                    <td className="py-3 fw-bold small text-main">{f.name.replace(/_/g, ' ')}</td>
+                                <tr key={i} className={f?.name === selectedFilter ? 'bg-primary bg-opacity-5' : ''}>
+                                    <td className="py-3 fw-bold small text-main">{f?.name?.replace(/_/g, ' ')}</td>
                                     <td className="text-center py-3">
                                         <div className="d-flex align-items-center justify-content-center gap-3">
                                             <div className="flex-grow-1 bg-light rounded-pill overflow-hidden" style={{ maxWidth: '100px', height: '6px' }}>
-                                                <div className="h-100 bg-primary" style={{ width: `${(f.metrics?.SSIM || 0) * 100}%` }}></div>
+                                                <div className="h-100 bg-primary" style={{ width: `${(f?.metrics?.SSIM || 0) * 100}%` }}></div>
                                             </div>
-                                            <span className="smaller fw-bold text-main">{f.metrics?.SSIM?.toFixed(4)}</span>
+                                            <span className="smaller fw-bold text-main">{f?.metrics?.SSIM?.toFixed(4)}</span>
                                         </div>
                                     </td>
-                                    <td className="text-center py-3 smaller text-muted">{f.metrics?.PSNR?.toFixed(2)}</td>
-                                    <td className="text-center py-3 smaller text-muted">{f.metrics?.MSE?.toFixed(2)}</td>
+                                    <td className="text-center py-3 smaller text-muted">{f?.metrics?.PSNR?.toFixed(2)}</td>
+                                    <td className="text-center py-3 smaller text-muted">{f?.metrics?.MSE?.toFixed(2)}</td>
                                     <td className="text-end py-3">
-                                        {f.name === selectedFilter ? (
+                                        {f?.name === selectedFilter ? (
                                             <span className="med-badge badge-blue">ACTIVE</span>
                                         ) : (
                                             <span className="smaller fw-bold text-muted opacity-50">READY</span>

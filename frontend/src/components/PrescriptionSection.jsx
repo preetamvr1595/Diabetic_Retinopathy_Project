@@ -6,9 +6,9 @@ const PrescriptionSection = ({ analysisData }) => {
 
     if (!classification) return null;
 
-    const severity = classification.label;
-    const confidence = Math.round(classification.confidence * 100);
-    const diagConfidence = diagnosis ? Math.round(diagnosis.confidence * 100) : confidence;
+    const severity = classification?.label;
+    const confidence = Math.round((classification?.confidence || 0) * 100);
+    const diagConfidence = diagnosis ? Math.round((diagnosis?.confidence || 0) * 100) : confidence;
 
     const getAIInsights = () => {
         const insights = {

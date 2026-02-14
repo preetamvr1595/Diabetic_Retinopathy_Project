@@ -13,6 +13,7 @@ from classification import classify_image
 
 app = Flask(__name__)
 CORS(app) # Enable CORS for React frontend
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 # 32MB limit for high-res images
 
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 USERS_FILE = os.path.join(os.getcwd(), "users.json")

@@ -5,19 +5,26 @@ import { motion } from 'framer-motion';
 
 const UploadStep = ({ onUpload }) => {
     const [isUploading, setIsUploading] = useState(false);
+    const [error, setError] = useState(null);
 
     const onDrop = useCallback(async (acceptedFiles) => {
         if (acceptedFiles.length === 0) return;
 
         setIsUploading(true);
+        setError(null);
         const formData = new FormData();
         formData.append('image', acceptedFiles[0]);
 
         try {
             const response = await api.post('/api/upload', formData);
-            onUpload(response.data.id);
+            if (response.data && response.data.id) {
+                onUpload(response.data.id);
+            } else {
+                throw new Error("Server did not return Image ID");
+            }
         } catch (error) {
             console.error('Upload failed', error);
+            setError(error.response?.data?.error || error.message || "Connection refused by clinical engine");
             setIsUploading(false);
         }
     }, [onUpload]);
@@ -37,6 +44,12 @@ const UploadStep = ({ onUpload }) => {
                 style={{ maxWidth: '600px', borderRadius: 'var(--radius-lg)' }}
             >
                 <div className="mb-4">
+                    {error && (
+                        <div className="alert alert-danger py-2 small mb-4 border-0 bg-danger bg-opacity-10 text-danger fw-bold">
+                            <i className="bi bi-exclamation-triangle me-2"></i>
+                            {error.toUpperCase()}
+                        </div>
+                    )}
                     <div className="d-inline-flex p-4 rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
                         <i className="bi bi-cloud-arrow-up display-5"></i>
                     </div>
