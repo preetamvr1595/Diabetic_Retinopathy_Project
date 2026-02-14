@@ -88,6 +88,11 @@ def get_model():
     if model is not None:
         return model
 
+    # Check if we should even try loading the heavy model
+    if os.environ.get('LOW_RAM_MODE', 'false').lower() == 'true':
+        print("LOW_RAM_MODE is active. Skipping heavy AI model loading.")
+        return None
+
     curr_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(curr_dir, "models", "attention_unet.h5")
     
@@ -95,53 +100,84 @@ def get_model():
         print(f"Warning: Segmentation model not found at {model_path}")
         return None
 
-    print(f"Loading Segmentation Model from {model_path}...")
+    print(f"Attempting to load Segmentation Model ({os.path.basename(model_path)})...")
     try:
-        # Try loading full model with compile=False (safer for inference)
+        # We use a very strict try-except to prevent the whole app from crashing
         model = load_model(model_path, custom_objects={
             'dice_loss': dice_loss,
             'combined_loss': combined_loss
         }, compile=False)
-        print("Segmentation Model Loaded Successfully (Full Load).")
+        print("Segmentation Model Loaded Successfully.")
     except Exception as e:
-        print(f"Full model load failed ({e}), attempting invalid layer workaround...")
-        try:
-            # Fallback: Build architecture and load weights
-            model = Attention_UNet()
-            model.load_weights(model_path)
-            print("Segmentation Model Loaded Successfully (Weights Only).")
-        except Exception as e2:
-            print(f"Error loading model: {e2}")
-            model = None
+        print(f"Could not load AI model (likely RAM limit). Error: {e}")
+        model = None
             
     return model
+
+# ==============================
+# FALLBACK: TRADITIONAL CV SEGMENTATION
+# ==============================
+def vessel_segmentation_cv(img):
+    """
+    Fallback method using traditional CV when U-Net cannot load (RAM issues).
+    Uses CLAHE, morphological operations, and adaptive thresholding.
+    """
+    # 1. Enhance contrast
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    en_img = clahe.apply(img)
+    
+    # 2. Extract vessels (vessles are darker than retina)
+    # Background subtraction / Top-hat
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    blackhat = cv2.morphologyEx(en_img, cv2.MORPH_BLACKHAT, kernel)
+    
+    # 3. Thresholding
+    _, thresh = cv2.threshold(blackhat, 15, 255, cv2.THRESH_BINARY)
+    
+    # 4. Noise removal
+    kernel_small = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    clean = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_small)
+    
+    return clean
 
 # ==============================
 # INFERENCE FUNCTION
 # ==============================
 def segment_image(image_path):
-    model = get_model()
-    if model is None:
-        print("Model not loaded, cannot segment.")
-        return None
-
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
+        print(f"Error: Could not read image at {image_path}")
         return None
     
     original_shape = img.shape[:2] # (H, W)
     
-    # Preprocess
-    img_resized = cv2.resize(img, (256, 256))
-    img_norm = img_resized / 255.0
-    img_input = np.expand_dims(img_norm, axis=(0, -1)) # (1, 256, 256, 1)
-    
-    # Predict
-    pred = model.predict(img_input)[0] # (256, 256, 1)
-    
-    # Post-process
-    mask = (pred > 0.5).astype(np.uint8) * 255
-    mask_resized = cv2.resize(mask, (original_shape[1], original_shape[0]), interpolation=cv2.INTER_NEAREST)
+    try:
+        model = get_model()
+        if model is not None:
+            print("Running U-Net Segmentation...")
+            # Preprocess
+            img_resized = cv2.resize(img, (256, 256))
+            img_norm = img_resized / 255.0
+            img_input = np.expand_dims(img_norm, axis=(0, -1)) # (1, 256, 256, 1)
+            
+            # Predict
+            pred = model.predict(img_input)[0] # (256, 256, 1)
+            
+            # Post-process
+            mask = (pred > 0.5).astype(np.uint8) * 255
+            mask_resized = cv2.resize(mask, (original_shape[1], original_shape[0]), interpolation=cv2.INTER_NEAREST)
+            print("U-Net Segmentation Success.")
+        else:
+            print("Model not loaded. Falling back to CV segmentation...")
+            mask_resized = vessel_segmentation_cv(img)
+            print("CV Segmentation Success.")
+            
+    except Exception as e:
+        print(f"Segmentation error: {e}. Falling back to CV segmentation...")
+        try:
+            mask_resized = vessel_segmentation_cv(img)
+        except:
+            return None
     
     # Save mask
     dir_name = os.path.dirname(image_path)
