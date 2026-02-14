@@ -17,10 +17,18 @@ const UploadStep = ({ onUpload }) => {
 
         try {
             const response = await api.post('/api/upload', formData);
+
+            // Critical Diagnostic Check:
+            // If the response is a string starting with "<!", it means we received HTML (likely index.html)
+            // instead of the JSON API response. This happens if the proxy or API_URL is misconfigured.
+            if (typeof response.data === 'string' && response.data.trim().startsWith('<!')) {
+                throw new Error("Misconfigured API URL: Frontend received HTML instead of JSON. Please check VITE_API_URL or Proxy settings.");
+            }
+
             if (response.data && response.data.id) {
                 onUpload(response.data.id);
             } else {
-                throw new Error("Server did not return Image ID");
+                throw new Error("Server did not return Image ID. Received unexpected response format.");
             }
         } catch (error) {
             console.error('Upload failed', error);
