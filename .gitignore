@@ -33,3 +33,4 @@ dist/
 uploads/
 results/
 dataset/
+backend/users.json
