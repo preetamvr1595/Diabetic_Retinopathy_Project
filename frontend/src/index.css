@@ -137,6 +137,17 @@ h6 {
   box-shadow: 0 4px 12px rgba(240, 98, 146, 0.2);
 }
 
+.btn-med-pink {
+  background: var(--med-secondary);
+  color: white;
+}
+
+.btn-med-pink:hover {
+  background: #e91e63;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 98, 146, 0.2);
+}
+
 .btn-med-outline {
   background: transparent;
   border: 1px solid var(--med-border);
@@ -291,4 +302,55 @@ h6 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--med-text-muted);
+}
+
+/* Medical Theme Helpers */
+.theme-patient {
+  --med-primary: var(--med-secondary);
+  --med-primary-soft: var(--med-secondary-soft);
+}
+
+.bg-pink-soft {
+  background-color: #fff1f5 !important;
+}
+
+.bg-primary-soft {
+  background-color: #f0f7ff !important;
+}
+
+.border-pink-light {
+  border: 1px solid rgba(240, 98, 146, 0.2) !important;
+}
+
+.border-primary-light {
+  border: 1px solid rgba(0, 118, 255, 0.2) !important;
+}
+
+.text-pink {
+  color: var(--med-secondary) !important;
+}
+
+.border-pink {
+  border-color: var(--med-secondary) !important;
+}
+
+.border-top-pink {
+  border-top: 6px solid var(--med-secondary) !important;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.hover-shadow-sm:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

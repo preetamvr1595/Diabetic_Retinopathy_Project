@@ -5,20 +5,34 @@ import { motion } from 'framer-motion';
 const ClassificationStep = ({ imageId, onNext = () => { } }) => {
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
         const fetchClassification = async () => {
+            setLoading(true);
             try {
                 const res = await api.get(`/api/classify/${imageId}`);
-                setResult(res.data);
-                setTimeout(() => setLoading(false), 1500);
+                if (res.data && !res.data.error) {
+                    setResult(res.data);
+                    setTimeout(() => {
+                        setLoading(false);
+                    }, 1500);
+                } else {
+                    setResult(null);
+                    setLoading(false);
+                }
             } catch (err) {
                 console.error(err);
+                setResult(null);
                 setLoading(false);
             }
         };
         fetchClassification();
-    }, [imageId]);
+    }, [imageId, retryCount]);
+
+    const handleRetry = () => {
+        setRetryCount(prev => prev + 1);
+    };
 
     if (loading) return (
         <div className="text-center py-5 d-flex flex-column align-items-center">
@@ -49,7 +63,8 @@ const ClassificationStep = ({ imageId, onNext = () => { } }) => {
                 <i className="bi bi-bar-chart-steps text-danger display-4 mb-3"></i>
                 <h4 className="fw-bold h5 text-danger">CLASSIFICATION FAILED</h4>
                 <p className="text-muted small mb-4">Final severity index calculation could not be completed. Clinical benchmarks were not reached.</p>
-                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
+                <button className="btn-med btn-med-outline w-100" onClick={handleRetry}>
+                    <i className="bi bi-arrow-clockwise me-2"></i>
                     RETRY CLASSIFICATION
                 </button>
             </div>

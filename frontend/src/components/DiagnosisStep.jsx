@@ -5,20 +5,34 @@ import { motion } from 'framer-motion';
 const DiagnosisStep = ({ imageId, onNext }) => {
     const [diagnosis, setDiagnosis] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
         const fetchDiagnosis = async () => {
+            setLoading(true);
             try {
                 const res = await api.get(`/api/diagnose/${imageId}`);
-                setDiagnosis(res.data);
-                setTimeout(() => setLoading(false), 1500);
+                if (res.data && !res.data.error) {
+                    setDiagnosis(res.data);
+                    setTimeout(() => {
+                        setLoading(false);
+                    }, 1500);
+                } else {
+                    setDiagnosis(null);
+                    setLoading(false);
+                }
             } catch (err) {
                 console.error(err);
+                setDiagnosis(null);
                 setLoading(false);
             }
         };
         fetchDiagnosis();
-    }, [imageId]);
+    }, [imageId, retryCount]);
+
+    const handleRetry = () => {
+        setRetryCount(prev => prev + 1);
+    };
 
     if (loading) return (
         <div className="text-center py-5 d-flex flex-column align-items-center">
@@ -36,8 +50,9 @@ const DiagnosisStep = ({ imageId, onNext }) => {
                 <i className="bi bi-activity text-danger display-4 mb-3"></i>
                 <h4 className="fw-bold h5 text-danger">DIAGNOSIS INTERRUPTED</h4>
                 <p className="text-muted small mb-4">The diagnostic engine returned an empty result. This can happen if the clinical model is still loading or if the connection was reset.</p>
-                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
-                    RESTART DIAGNOSIS
+                <button className="btn-med btn-med-outline w-100" onClick={handleRetry}>
+                    <i className="bi bi-arrow-clockwise me-2"></i>
+                    RETRY DIAGNOSIS
                 </button>
             </div>
         </div>

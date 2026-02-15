@@ -6,9 +6,11 @@ const FilterStep = ({ imageId, onNext }) => {
     const [filters, setFilters] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedFilter, setSelectedFilter] = useState("ACE_ME_Novel");
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
         const fetchFilters = async () => {
+            setLoading(true);
             try {
                 const res = await api.get(`/api/filters/${imageId}`);
                 const data = Array.isArray(res.data) ? res.data : [];
@@ -22,11 +24,16 @@ const FilterStep = ({ imageId, onNext }) => {
                 setLoading(false);
             } catch (err) {
                 console.error(err);
+                setFilters([]);
                 setLoading(false);
             }
         };
         fetchFilters();
-    }, [imageId]);
+    }, [imageId, retryCount]);
+
+    const handleRetry = () => {
+        setRetryCount(prev => prev + 1);
+    };
 
     if (loading) return (
         <div className="text-center py-5 d-flex flex-column align-items-center">
@@ -46,7 +53,8 @@ const FilterStep = ({ imageId, onNext }) => {
                 <i className="bi bi-cpu text-danger display-4 mb-3"></i>
                 <h4 className="fw-bold h5 text-danger">ENHANCEMENT FAILED</h4>
                 <p className="text-muted small mb-4">The clinical preprocessing filters failed to initialize. Please verify the backend connection and image integrity.</p>
-                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
+                <button className="btn-med btn-med-outline w-100" onClick={handleRetry}>
+                    <i className="bi bi-arrow-clockwise me-2"></i>
                     RETRY PIPELINE
                 </button>
             </div>
