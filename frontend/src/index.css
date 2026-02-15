@@ -137,6 +137,17 @@ h6 {
   box-shadow: 0 4px 12px rgba(240, 98, 146, 0.2);
 }
 
+.btn-med-pink {
+  background: var(--med-secondary);
+  color: white;
+}
+
+.btn-med-pink:hover {
+  background: #e91e63;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 98, 146, 0.2);
+}
+
 .btn-med-outline {
   background: transparent;
   border: 1px solid var(--med-border);

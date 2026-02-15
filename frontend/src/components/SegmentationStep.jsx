@@ -5,22 +5,34 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showOverlay, setShowOverlay] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
         const fetchSegmentation = async () => {
+            setLoading(true);
             try {
                 const res = await api.get(`/api/segment/${imageId}`);
-                if (res.data) {
+                if (res.data && !res.data.error) {
                     setData(res.data);
+                    setTimeout(() => {
+                        setLoading(false);
+                    }, 1500);
+                } else {
+                    setData(null);
+                    setLoading(false);
                 }
-                setTimeout(() => setLoading(false), 1500);
             } catch (err) {
                 console.error("Segmentation API Error:", err);
+                setData(null);
                 setLoading(false);
             }
         };
         fetchSegmentation();
-    }, [imageId]);
+    }, [imageId, retryCount]);
+
+    const handleRetry = () => {
+        setRetryCount(prev => prev + 1);
+    };
 
     if (loading) return (
         <div className="text-center py-5 d-flex flex-column align-items-center">
@@ -38,8 +50,8 @@ const SegmentationStep = ({ imageId, onNext = () => { } }) => {
                 <i className="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
                 <h4 className="fw-bold h5 text-danger">SEGMENTATION FAILED</h4>
                 <p className="text-muted small mb-4">The AI engine was unable to process the vascular tree. This may be due to a server timeout or invalid image data.</p>
-                <button className="btn-med btn-med-outline w-100" onClick={() => window.location.reload()}>
-                    <i className="bi bi-arrow-clockwise"></i>
+                <button className="btn-med btn-med-outline w-100" onClick={handleRetry}>
+                    <i className="bi bi-arrow-clockwise me-2"></i>
                     RETRY PROCESS
                 </button>
             </div>
