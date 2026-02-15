@@ -330,6 +330,10 @@ h6 {
   color: var(--med-secondary) !important;
 }
 
+.text-primary {
+  color: var(--med-primary) !important;
+}
+
 .border-pink {
   border-color: var(--med-secondary) !important;
 }
@@ -353,4 +357,14 @@ h6 {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Prescription Refinements */
+.med-card h6 {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+.med-card ul li {
+  line-height: 1.6;
 }
